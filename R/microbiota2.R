@@ -672,6 +672,7 @@ pca.plot <- function(dist,data=FALSE,prefix=NA) {
 #' @param mult.test.correction Can be {0,1,2}. Set the multiple testing correction options. 0 no correction (more strict, default), 1 correction for independent comparisons, 2 correction for independent comparison
 #' @param one.against.one for multiclass tasks, sets whether testing is performed one-against-one (TRUE - more strict) or one-against-all (FALSE - less strict)
 #' @param levels Taxonomic levels to be tested. Default is to test all levels: rank_names(phy)
+#' @param lefse.prefix lefse scripts may be installed with a prefix (e.g. 'lefse-plot_cladogram.py'). By default assumes no prefix.
 #' @return Returns data
 #' @examples
 #' lefse.tbl <- lefse(ph,class="CDI",subclass="Sex")
@@ -681,7 +682,7 @@ lefse <- function(phy,class,subclass=NA,subject=NA,
                   anova.alpha=0.05,wilcoxon.alpha=0.05,lda.cutoff=2.0,
                   wilcoxon.within.subclass=FALSE,one.against.one=FALSE,
                   mult.test.correction=0,
-                  make.lefse.plots=FALSE,by_otus=FALSE,
+                  make.lefse.plots=FALSE,by_otus=FALSE,lefse.prefix='',
                   levels=rank_names(phy)) {
   #phy=ph.lefse;class="CDI";subclass=NA;subject=NA;anova.alpha=0.05;wilcoxon.alpha=0.05;lda.cutoff=2.0;wilcoxon.within.subclass=FALSE;one.against.one=FALSE;levels=rank_names(phy)
   #phy=ph.lefse;class="CDI";subclass=NA;subject=NA;anova.alpha=0.05;wilcoxon.alpha=0.05;lda.cutoff=2.0;wilcoxon.within.subclass=FALSE;one.against.one=FALSE;levels=rank_names(phy)
@@ -726,7 +727,7 @@ lefse <- function(phy,class,subclass=NA,subject=NA,
   opt.class <- paste("-c",which(keepvars %in% class))
   opt.subclass <- ifelse(is.na(subclass),"",paste("-s",which(keepvars %in% subclass)))
   opt.subject <-ifelse(is.na(subject),"",paste("-u",which(keepvars %in% subject)))
-  format.command <- paste("format_input.py lefse.txt lefse.in",opt.class,opt.subclass,opt.subject,"-o 1000000")
+  format.command <- paste(paste0(lefse.prefix,"format_input.py lefse.txt lefse.in"),opt.class,opt.subclass,opt.subject,"-o 1000000")
   system(format.command)
   #   -m {f,s}              set the policy to adopt with missin values: f removes
   #   the features with missing values, s removes samples
@@ -736,7 +737,7 @@ lefse <- function(phy,class,subclass=NA,subject=NA,
   #   together, if the cardinality is still low, no pairwise
   #   comparison will be performed with them)
 
-  lefse.command <- paste("run_lefse.py lefse.in lefse.res",
+  lefse.command <- paste(paste0(lefse.prefix, "run_lefse.py lefse.in lefse.res"),
                          "-a",anova.alpha,
                          "-w",wilcoxon.alpha,
                          "-l",lda.cutoff,
@@ -775,9 +776,9 @@ lefse <- function(phy,class,subclass=NA,subject=NA,
   #                   all setting ( 0 - less strict) (default 0)
 
   if (make.lefse.plots) {
-    system("plot_res.py lefse.res lefse_lda.png")
+    system(paste0(lefse.prefix, "plot_res.py lefse.res lefse_lda.png"))
     print("Wrote lefse_lda.png")
-    system("plot_cladogram.py lefse.res lefse_clado.pdf --format pdf")
+    system(paste0(lefse.prefix, "plot_cladogram.py lefse.res lefse_clado.pdf --format pdf"))
     print("Wrote lefse_clado.pdf")
   }
   return(lefse.out)
